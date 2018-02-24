@@ -1,6 +1,7 @@
 package io.hyz.coolweather;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -49,6 +50,7 @@ public class ChooseAreaFragment extends Fragment {
         backButton=(Button)view.findViewById(R.id.back_button);
         listView=(ListView)view.findViewById(R.id.list_view);
         adapter=new ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_1,dataList);
+        //getConntext如果标红，说明Fragment引用的包不是android.support.v4.app.Fragment
         listView.setAdapter(adapter);
         return view;
     }
@@ -65,6 +67,12 @@ public class ChooseAreaFragment extends Fragment {
                 }else if (currentLevel==LEVEL_CITY){
                     selectedCity=cityList.get(i);
                     queryCounties();
+                }else if (currentLevel==LEVEL_COUNTY){
+                    String weatherId=countyList.get(i).getWeatherId();
+                    Intent intent=new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -113,8 +121,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel=LEVEL_CITY;
         }else {
             int provinceCode=selectedProvince.getProvinceCode();
-            String address="http://guolin.tech/api/china/"+provinceCode;
-            Log.d(TAG, "queryCities: address:"+address);
+            String address="http://guolin.tech/api/china/"+provinceCode;;
             queryFromServer(address,"city");
         }
     }

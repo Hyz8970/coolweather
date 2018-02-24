@@ -1,9 +1,12 @@
 package io.hyz.coolweather.util;
 
 import android.text.TextUtils;
+import android.util.Log;
+import com.google.gson.Gson;
 import io.hyz.coolweather.db.City;
 import io.hyz.coolweather.db.County;
 import io.hyz.coolweather.db.Province;
+import io.hyz.coolweather.gson.HeWeather6;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -66,5 +69,16 @@ public class Utility {
             }
         }
         return false;
+    }
+    public static HeWeather6 handleWeatherResponse(String response){
+        try {
+            JSONObject jsonObject=new JSONObject(response);
+            JSONArray jsonArray=jsonObject.getJSONArray("HeWeather6");
+            String heWeather6=jsonArray.getJSONObject(0).toString();
+            return new Gson().fromJson(heWeather6,HeWeather6.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
