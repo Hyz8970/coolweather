@@ -176,7 +176,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     private void showWeatherInfo(HeWeather6 heWeather6) {
         String cityName = heWeather6.basic.location;
-        String updateTime = "更新时间：" + heWeather6.update.loc.split(" ")[1];//切割字符串获取后面的时分 "loc": "2018-02-23 12:53"
+        String updateTime = heWeather6.update.loc.split(" ")[1]+"更新";//切割字符串获取后面的时分 "loc": "2018-02-23 12:53"
         String degree = heWeather6.now.tmp + "℃";
         String weatherInfo = heWeather6.now.cond_txt;
         titleCity.setText(cityName);
@@ -184,6 +184,16 @@ public class WeatherActivity extends AppCompatActivity {
         degreeText.setText(degree);
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
+        View viewTitle = LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false);
+        TextView infoTextDayTitle = (TextView) viewTitle.findViewById(R.id.info_day_text);
+        TextView infoTextNightTitle = (TextView) viewTitle.findViewById(R.id.info_night_text);
+        TextView maxTextTitle = (TextView) viewTitle.findViewById(R.id.max_text);
+        TextView minTextTitle = (TextView) viewTitle.findViewById(R.id.min_text);
+        infoTextDayTitle.setText("白天");
+        infoTextNightTitle.setText("晚上");
+        maxTextTitle.setText("最高");
+        minTextTitle.setText("最低");
+        forecastLayout.addView(viewTitle);
         for (Daily_forecast forecast : heWeather6.daily_forecast) {
             View view = LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false);
             TextView dateText = (TextView) view.findViewById(R.id.data_text);
@@ -192,8 +202,8 @@ public class WeatherActivity extends AppCompatActivity {
             TextView maxText = (TextView) view.findViewById(R.id.max_text);
             TextView minText = (TextView) view.findViewById(R.id.min_text);
             dateText.setText(forecast.date.split("-")[2]);
-            infoTextDay.setText("白天：" + forecast.cond_txt_d);
-            infoTextNight.setText(" 晚上：" + forecast.cond_txt_n);
+            infoTextDay.setText(forecast.cond_txt_d);
+            infoTextNight.setText(forecast.cond_txt_n);
             maxText.setText(forecast.tmp_max + "℃");
             minText.setText(forecast.tmp_min + "℃");
             forecastLayout.addView(view);
@@ -218,7 +228,7 @@ public class WeatherActivity extends AppCompatActivity {
             }
         }
         weatherLayout.setVisibility(View.VISIBLE);
-        Intent intent=new Intent(this, AutoUpdateService.class);
+        Intent intent = new Intent(this, AutoUpdateService.class);
         startService(intent);
     }
 
