@@ -3,7 +3,7 @@
     <version value="1"/>
     <list>
         <mapping class="io.hyz.coolweather.db.City"/>
-        <mapping class="io.hyz.coolweather.db.cityCode"/>
+        <mapping class="io.hyz.coolweather.db.County"/>
         <mapping class="io.hyz.coolweather.db.Province"/>
     </list>
 </litepal>
