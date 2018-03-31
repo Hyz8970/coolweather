@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
 import io.hyz.coolweather.db.City;
 import io.hyz.coolweather.db.County;
 import io.hyz.coolweather.db.Province;
@@ -32,7 +34,7 @@ public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_COUNTY = 2;
     private ProgressDialog progressDialog;
     private TextView titleText;
-    private Button backButton;
+    private Button backButton,position;
     private ListView listView;
     private ArrayAdapter<String> adapter;
     private List<String> dataList = new ArrayList<>();
@@ -49,6 +51,7 @@ public class ChooseAreaFragment extends Fragment {
         View view = inflater.inflate(R.layout.choose_area, container, false);
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (Button) view.findViewById(R.id.back_button);
+        position=(Button)view.findViewById(R.id.position);
         listView = (ListView) view.findViewById(R.id.list_view);
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
         //getConntext如果标红，说明Fragment引用的包不是android.support.v4.app.Fragment
@@ -71,8 +74,10 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String weatherId = countyList.get(i).getWeatherId();
                     if (getActivity() instanceof MainActivity) {
+                        //点击到最后的地区
                         Intent intent = new Intent(getActivity(), WeatherActivity.class);
                         intent.putExtra("weather_id", weatherId);
+                        intent.putExtra("isPosition", "false");
                         Log.d(TAG, "onItemClick: " + weatherId);
                         startActivity(intent);
                         getActivity().finish();
@@ -93,6 +98,17 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     queryProvinces();
                 }
+            }
+        });
+        //使用定位
+        position.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                intent.putExtra("isPosition", "true");
+                Log.d(TAG, "onClick: 使用定位");
+                startActivity(intent);
+                getActivity().finish();
             }
         });
         queryProvinces();
@@ -131,7 +147,6 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
             String address = "http://guolin.tech/api/china/" + provinceCode;
-            ;
             queryFromServer(address, "city");
         }
     }

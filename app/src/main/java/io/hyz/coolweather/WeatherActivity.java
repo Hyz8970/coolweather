@@ -14,6 +14,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.*;
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.bumptech.glide.Glide;
 import io.hyz.coolweather.gson.Daily_forecast;
 import io.hyz.coolweather.gson.HeWeather6;
@@ -47,7 +51,7 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView uvText;
     private ImageView bingPicImg;
     private Button navButton;
-    private String mWeatherId;
+    private String mWeatherId, position = "";
     private static final String TAG = "WeatherActivity";
 
     @Override
@@ -78,16 +82,44 @@ public class WeatherActivity extends AppCompatActivity {
         uvText = (TextView) findViewById(R.id.uv_text);
         bingPicImg = (ImageView) findViewById(R.id.binf_pic_img);
         navButton = (Button) findViewById(R.id.nav_button);
-
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        //初始化高德定位
+        AMapLocationClient aMapLocationClient = new AMapLocationClient(this);
+        AMapLocationClientOption aMapLocationClientOption = new AMapLocationClientOption();
+        //高精度定位
+        aMapLocationClientOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        aMapLocationClientOption.setInterval(10 * 60 * 1000);//十分钟定位一次
+        aMapLocationClient.setLocationOption(aMapLocationClientOption);
+        aMapLocationClient.setLocationListener(new AMapLocationListener() {
+            @Override
+            public void onLocationChanged(AMapLocation aMapLocation) {
+                String lastPosition = "";
+                position = aMapLocation.getDistrict();
+                //不同位置才进行新的请求
+                if (!position.equals(lastPosition)) {
+                    lastPosition=position;
+                    requestWeather(position);
+                }
+            }
+        });
+
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = preferences.getString("weather", null);
-        if (weatherString != null) {
+        Intent chooseIntent = getIntent();
+        String chooseStr = chooseIntent.getStringExtra("isPosition");
+        Log.d(TAG, "onCreate: " + chooseStr);
+        if (chooseStr != null && chooseStr.equals("true")) {
+            if (!aMapLocationClient.isStarted()) {
+                aMapLocationClient.startLocation();
+            }
+        } else if (weatherString != null) {
             HeWeather6 heWeather6 = Utility.handleWeatherResponse(weatherString);
             mWeatherId = heWeather6.basic.cid;
             showWeatherInfo(heWeather6);
         } else {
-            mWeatherId = getIntent().getStringExtra("weather_id");
+            aMapLocationClient.stopLocation();
+            position="";//空置，防止刷新时获取的时定位的地址
+            mWeatherId = chooseIntent.getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(mWeatherId);
         }
@@ -95,7 +127,11 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(mWeatherId);
+                if (!position.equals("")) {
+                    requestWeather(position);
+                } else {
+                    requestWeather(mWeatherId);
+                }
             }
         });
         String bingPic = preferences.getString("bing_pic", null);
@@ -136,8 +172,8 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    public void requestWeather(final String weatherId) {
-        String weatherUrl = "https://free-api.heweather.com/s6/weather?key=c5bbac29f574411aa9ceec3c0c035646&location=" + weatherId;
+    public void requestWeather(final String cityWeather) {
+        String weatherUrl = "https://free-api.heweather.com/s6/weather?key=c5bbac29f574411aa9ceec3c0c035646&location=" + cityWeather;
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -176,7 +212,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     private void showWeatherInfo(HeWeather6 heWeather6) {
         String cityName = heWeather6.basic.location;
-        String updateTime = heWeather6.update.loc.split(" ")[1]+"更新";//切割字符串获取后面的时分 "loc": "2018-02-23 12:53"
+        String updateTime = heWeather6.update.loc.split(" ")[1] + "更新";//切割字符串获取后面的时分 "loc": "2018-02-23 12:53"
         String degree = heWeather6.now.tmp + "℃";
         String weatherInfo = heWeather6.now.cond_txt;
         titleCity.setText(cityName);
