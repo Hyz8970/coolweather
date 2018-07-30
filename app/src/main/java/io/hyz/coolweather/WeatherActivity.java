@@ -173,7 +173,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void requestWeather(final String cityWeather) {
-        String weatherUrl = "https://free-api.heweather.com/s6/weather?key=c5bbac29f574411aa9ceec3c0c035646&location=" + cityWeather;
+        String weatherUrl = "https://free-api.heweather.com/s6/weather?key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&location=" + cityWeather;
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
